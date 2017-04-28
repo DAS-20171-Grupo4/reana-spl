@@ -137,6 +137,10 @@ public class RDGNode {
         return transitiveDependencies;
     }
 
+    private static boolean hasCycle(RDGNode node,Map<RDGNode, Boolean> marks){
+        return marks.containsKey(node) && marks.get(node) == false;
+    }
+
     /**
      * Topological sort {@code visit} function (Cormen et al.'s algorithm).
      * @param node
@@ -145,8 +149,7 @@ public class RDGNode {
      * @throws CyclicRdgException
      */
     private void topoSortVisit(RDGNode node, Map<RDGNode, Boolean> marks, List<RDGNode> sorted) throws CyclicRdgException {
-        if (marks.containsKey(node) && marks.get(node) == false) {
-            // Visiting temporarily marked node -- this means a cyclic dependency!
+    	if ( hasCycle(node,marks) ) {
             throw new CyclicRdgException();
         } else if (!marks.containsKey(node)) {
             // Mark node temporarily (cycle detection)
@@ -175,8 +178,7 @@ public class RDGNode {
 
     // TODO Parameterize topological sort of RDG.
     private static Map<RDGNode, Integer> numPathsVisit(RDGNode node, Map<RDGNode, Boolean> marks, Map<RDGNode, Map<RDGNode, Integer>> cache) throws CyclicRdgException {
-        if (marks.containsKey(node) && marks.get(node) == false) {
-            // Visiting temporarily marked node -- this means a cyclic dependency!
+        if ( hasCycle(node,marks) ) {
             throw new CyclicRdgException();
         } else if (!marks.containsKey(node)) {
             // Mark node temporarily (cycle detection)
