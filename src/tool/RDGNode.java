@@ -243,6 +243,12 @@ public class RDGNode {
     		return true;
     	}
     	return false;
+	}
+
+    private Collection<Component<FDTMC>> getDependenciesCollection() {
+        return getDependencies().stream()
+                .map(RDGNode::toComponent)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -250,13 +256,10 @@ public class RDGNode {
      * @return
      */
     public Component<FDTMC> toComponent() {
-        Collection<Component<FDTMC>> dependencies = this.getDependencies().stream()
-                .map(RDGNode::toComponent)
-                .collect(Collectors.toSet());
         return new Component<FDTMC>(this.getId(),
                                     this.getPresenceCondition(),
                                     this.getFDTMC(),
-                                    dependencies);
+                                    getDependenciesCollection());
     }
 
     public static List<Component<FDTMC>> toComponentList(List<RDGNode> nodes) {
