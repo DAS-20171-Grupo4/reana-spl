@@ -126,21 +126,50 @@ public class FDTMC {
         return errorState;
     }
 
-	public Transition createTransition(State source, State target, String action, String reliability) {
-	    if (source == null) {
+	public Transition createTransition(State sourceState, State target, String action, String reliability) {
+	    
+		if (stateIsNull(sourceState)) {
 	        return null;
 	    }
+		
+	    List<Transition> listOfTransitions = createListOfTransitions(sourceState);
 
-	    List<Transition> l = transitionSystem.get(source);
-		if (l == null) {
-			l = new LinkedList<Transition>();
-		}
+		Transition newTransition = new Transition(sourceState, target, action, reliability);
+		
+		return verifySucess(sourceState, listOfTransitions, newTransition);
+	}
 
-		Transition newTransition = new Transition(source, target, action, reliability);
-		boolean success = l.add(newTransition);
-		transitionSystem.put(source, l);
+	private Transition verifySucess(State sourceState, List<Transition> listOfTransitions, Transition newTransition) {
+		boolean success = listOfTransitions.add(newTransition);
+		transitionSystem.put(sourceState, listOfTransitions);
 		return success ? newTransition : null;
 	}
+	
+	
+	private List<Transition> createListOfTransitions(State sourceState) {
+		
+		List<Transition> listOfTransitions = transitionSystem.get(sourceState);
+	    
+		if (transitionIsNull(listOfTransitions)) {
+			listOfTransitions = new LinkedList<Transition>();
+		}
+		return listOfTransitions;
+	}
+
+	private boolean stateIsNull(State source) {
+		if (source == null) {
+	        return true;
+		}
+		return false; 
+	}
+	
+	private boolean transitionIsNull(List<Transition> listOfTransitions) {
+		if (listOfTransitions == null) {
+	        return true;
+		}
+		return false; 
+	}
+	
 
 	/**
 	 * Creates an explicit interface to another FDTMC.
