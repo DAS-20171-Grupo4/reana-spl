@@ -281,12 +281,16 @@ public class FDTMC {
 	        FDTMC other = (FDTMC) obj;
 	        LinkedList<List<Interface>> thisInterfaces = new LinkedList<List<Interface>>(interfaces.values());
             LinkedList<List<Interface>> otherInterfaces = new LinkedList<List<Interface>>(other.interfaces.values());
-            return states.equals(other.states)
-	                && getInitialState().equals(other.getInitialState())
-	                && getSuccessState().equals(other.getSuccessState())
-	                && getErrorState().equals(other.getErrorState())
-	                && transitionSystem.equals(other.transitionSystem)
-	                && thisInterfaces.equals(otherInterfaces);
+            
+            final boolean equalStates = states.equals(other.states);
+            final boolean equalInitialState = getInitialState().equals(other.getInitialState());
+            final boolean equalSucessState = getSuccessState().equals(other.getSuccessState());
+            final boolean equalErrorState = getErrorState().equals(other.getErrorState());
+            final boolean equalTrasitionSystem = transitionSystem.equals(other.transitionSystem);
+            final boolean equalInterfaces = thisInterfaces.equals(otherInterfaces);
+            
+            return equalStates && equalInitialState && equalSucessState && equalErrorState && equalTrasitionSystem && equalInterfaces;
+	               
 	    }
 	    return false;
 	}
