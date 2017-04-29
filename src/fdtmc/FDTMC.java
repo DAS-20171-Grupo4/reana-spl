@@ -192,16 +192,22 @@ public class FDTMC {
 	                                           error,
 	                                           successTransition,
 	                                           errorTransition);
+	    
+	    addToInterfacesOcurrences(newInterface);
 
-	    List<Interface> interfaceOccurrences = null;
+	    return newInterface;
+	}
+	
+	public void addToInterfacesOcurrences(Interface interfaceToBeAdd){
+		final String id = interfaceToBeAdd.getAbstractedId();
+		List<Interface> interfaceOccurrences = null;
 	    if (interfaces.containsKey(id)) {
 	        interfaceOccurrences = interfaces.get(id);
 	    } else {
 	        interfaceOccurrences = new LinkedList<Interface>();
 	        interfaces.put(id, interfaceOccurrences);
 	    }
-	    interfaceOccurrences.add(newInterface);
-	    return newInterface;
+	    interfaceOccurrences.add(interfaceToBeAdd);
 	}
 
 	public State getStateByLabel(String label) {
