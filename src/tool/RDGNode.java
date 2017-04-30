@@ -104,9 +104,10 @@ public class RDGNode {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof RDGNode) {
             RDGNode other = (RDGNode) obj;
-            return this.getPresenceCondition().equals(other.getPresenceCondition())
-                    && this.getFDTMC().equals(other.getFDTMC())
-                    && this.getDependencies().equals(other.getDependencies());
+            boolean validatePresenceCondition = this.getPresenceCondition().equals(other.getPresenceCondition());
+            boolean validateFDTMC = this.getFDTMC().equals(other.getFDTMC());
+            boolean validateDependencies = this.getDependencies().equals(other.getDependencies());
+            return validatePresenceCondition && validateFDTMC&& validateDependencies;
         }
         return false;
     }
@@ -132,9 +133,12 @@ public class RDGNode {
      */
     public List<RDGNode> getDependenciesTransitiveClosure() throws CyclicRdgException {
         List<RDGNode> transitiveDependencies = new LinkedList<RDGNode>();
-        Map<RDGNode, Boolean> marks = new HashMap<RDGNode, Boolean>();
-        topoSortVisit(this, marks, transitiveDependencies);
+        topoSortVisit(this, new HashMap<RDGNode, Boolean>(), transitiveDependencies);
         return transitiveDependencies;
+    }
+
+    private static boolean hasCycle(RDGNode node,Map<RDGNode, Boolean> marks){
+        return marks.containsKey(node) && marks.get(node) == false;
     }
 
     /**
@@ -145,8 +149,7 @@ public class RDGNode {
      * @throws CyclicRdgException
      */
     private void topoSortVisit(RDGNode node, Map<RDGNode, Boolean> marks, List<RDGNode> sorted) throws CyclicRdgException {
-        if (marks.containsKey(node) && marks.get(node) == false) {
-            // Visiting temporarily marked node -- this means a cyclic dependency!
+    	if ( hasCycle(node,marks) ) {
             throw new CyclicRdgException();
         } else if (!marks.containsKey(node)) {
             // Mark node temporarily (cycle detection)
@@ -167,20 +170,15 @@ public class RDGNode {
      * @throws CyclicRdgException
      */
     public Map<RDGNode, Integer> getNumberOfPaths() throws CyclicRdgException {
-        Map<RDGNode, Integer> numberOfPaths = new HashMap<RDGNode, Integer>();
+    	return sumPaths(new HashMap<RDGNode, Integer>(), numPathsVisit(this,
+    																	new HashMap<RDGNode, Boolean>(),
+    																	new HashMap<RDGNode, Map<RDGNode,Integer>>()));
 
-        Map<RDGNode, Boolean> marks = new HashMap<RDGNode, Boolean>();
-        Map<RDGNode, Map<RDGNode, Integer>> cache = new HashMap<RDGNode, Map<RDGNode,Integer>>();
-        Map<RDGNode, Integer> tmpNumberOfPaths = numPathsVisit(this, marks, cache);
-        numberOfPaths = sumPaths(numberOfPaths, tmpNumberOfPaths);
-
-        return numberOfPaths;
     }
 
     // TODO Parameterize topological sort of RDG.
     private static Map<RDGNode, Integer> numPathsVisit(RDGNode node, Map<RDGNode, Boolean> marks, Map<RDGNode, Map<RDGNode, Integer>> cache) throws CyclicRdgException {
-        if (marks.containsKey(node) && marks.get(node) == false) {
-            // Visiting temporarily marked node -- this means a cyclic dependency!
+        if ( hasCycle(node,marks) ) {
             throw new CyclicRdgException();
         } else if (!marks.containsKey(node)) {
             // Mark node temporarily (cycle detection)
@@ -233,11 +231,24 @@ public class RDGNode {
      */
     public static RDGNode getSimilarNode(RDGNode target) {
         for (RDGNode candidate: nodesInCreationOrder) {
-            if (candidate != target && candidate.equals(target)) {
+            if (candidate.isNotTargetAndEquals(target)) {
                 return candidate;
             }
         }
         return null;
+    }
+
+    private boolean isNotTargetAndEquals(RDGNode target){
+    	if(this != target && this.equals(target)){
+    		return true;
+    	}
+    	return false;
+	}
+
+    private Collection<Component<FDTMC>> getDependenciesCollection() {
+        return getDependencies().stream()
+                .map(RDGNode::toComponent)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -245,13 +256,10 @@ public class RDGNode {
      * @return
      */
     public Component<FDTMC> toComponent() {
-        Collection<Component<FDTMC>> dependencies = this.getDependencies().stream()
-                .map(RDGNode::toComponent)
-                .collect(Collectors.toSet());
         return new Component<FDTMC>(this.getId(),
                                     this.getPresenceCondition(),
                                     this.getFDTMC(),
-                                    dependencies);
+                                    getDependenciesCollection());
     }
 
     public static List<Component<FDTMC>> toComponentList(List<RDGNode> nodes) {
