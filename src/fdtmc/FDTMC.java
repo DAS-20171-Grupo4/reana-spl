@@ -25,16 +25,7 @@ public class FDTMC {
 	private int index;
 	private Map<State, List<Transition>> transitionSystem;
 	private Map<String, List<Interface>> interfaces;
-	private FDTMCInline fdtmcInline; 
 
-
-	public Map<String, List<Interface>> getInterfaces() {
-		return interfaces;
-	}
-
-	public void setInterfaces(Map<String, List<Interface>> interfaces) {
-		this.interfaces = interfaces;
-	}
 
 	public FDTMC() {
 		states = new LinkedHashSet<State>();
@@ -43,7 +34,6 @@ public class FDTMC {
 		index = 0;
 		transitionSystem = new LinkedHashMap<State, List<Transition>>();
 		interfaces = new LinkedHashMap<String, List<Interface>>();
-		fdtmcInline = new FDTMCInline();
 	}
 
 	public Collection<State> getStates() {
@@ -325,9 +315,18 @@ public class FDTMC {
     public FDTMC inline(Map<String, FDTMC> indexedModels) {
         FDTMC inlined = new FDTMC();
         Map<State, State> statesMapping = copyForInlining(inlined);
-        
-        inlined =  fdtmcInline.inline(indexedModels, statesMapping, inlined, this);
-        
+
+        for (Map.Entry<String, List<Interface>> entry: interfaces.entrySet()) {
+            String dependencyId = entry.getKey();
+            if (indexedModels.containsKey(dependencyId)) {
+                FDTMC fragment = indexedModels.get(dependencyId);
+                for (Interface iface: entry.getValue()) {
+                    inlined.inlineInInterface(iface,
+                                              fragment,
+                                              statesMapping);
+                }
+            }
+        }
         return inlined;
     }
 
@@ -384,7 +383,7 @@ public class FDTMC {
      * @return a mapping from states in this FDTMC to the corresponding states
      *      in the copied one ({@code destination}).
      */
-    protected Map<State, State> copyForInlining(FDTMC destination) {
+    private Map<State, State> copyForInlining(FDTMC destination) {
         destination.variableName = this.getVariableName();
 
         Map<State, State> statesMapping = destination.inlineStates(this);
@@ -419,9 +418,13 @@ public class FDTMC {
      * @param fdtmc
      * @return
      */
-    protected Map<State, State> inlineStates(FDTMC fdtmc) {
-        
-        return fdtmcInline.inlineStates(fdtmc, this);
+    private Map<State, State> inlineStates(FDTMC fdtmc) {
+        Map<State, State> statesOldToNew = new HashMap<State, State>();
+        for (State state: fdtmc.getStates()) {
+            State newState = this.createState();
+            statesOldToNew.put(state, newState);
+        }
+        return statesOldToNew;
     }
 
     /**
@@ -430,8 +433,27 @@ public class FDTMC {
      * @param fdtmc
      * @param statesOldToNew
      */
-    protected void inlineTransitions(FDTMC fdtmc, Map<State, State> statesOldToNew) {
-    	fdtmcInline.inlineTransitions(fdtmc, statesOldToNew, this);
+    private void inlineTransitions(FDTMC fdtmc, Map<State, State> statesOldToNew) {
+        Set<Transition> interfaceTransitions = fdtmc.getInterfaceTransitions();
+        for (Map.Entry<State, List<Transition>> entry : fdtmc.getTransitions().entrySet()) {
+            List<Transition> transitions = entry.getValue();
+            if (transitions != null) {
+                for (Transition transition : transitions) {
+                    if (!interfaceTransitions.contains(transition)) {
+                        inlineTransition(transition, statesOldToNew);
+                    }
+                }
+            }
+        }
+    }
+
+    private Transition inlineTransition(Transition transition, Map<State, State> statesOldToNew) {
+        State newSource = statesOldToNew.get(transition.getSource());
+        State newTarget = statesOldToNew.get(transition.getTarget());
+        return createTransition(newSource,
+                                newTarget,
+                                transition.getActionName(),
+                                transition.getProbability());
     }
 
     /**
@@ -441,12 +463,45 @@ public class FDTMC {
      * @param fdtmc
      * @param statesOldToNew
      */
-    protected void inlineInterfaces(FDTMC fdtmc, Map<State, State> statesOldToNew) {
-    	fdtmcInline.inlineInterfaces(fdtmc, statesOldToNew, this);
+    private void inlineInterfaces(FDTMC fdtmc, Map<State, State> statesOldToNew) {
+        for (Map.Entry<String, List<Interface>> entry : fdtmc.interfaces.entrySet()) {
+            List<Interface> newInterfaces = new LinkedList<Interface>();
+            this.interfaces.put(entry.getKey(), newInterfaces);
+            for (Interface iface : entry.getValue()) {
+                Transition successTransition = inlineTransition(iface.getSuccessTransition(), statesOldToNew);
+                Transition errorTransition = inlineTransition(iface.getErrorTransition(), statesOldToNew);
+                Interface newInterface = new Interface(iface.getAbstractedId(),
+                                                       statesOldToNew.get(iface.getInitial()),
+                                                       statesOldToNew.get(iface.getSuccess()),
+                                                       statesOldToNew.get(iface.getError()),
+                                                       successTransition,
+                                                       errorTransition);
+                newInterfaces.add(newInterface);
+            }
+        }
     }
 
+    private void inlineInInterface(Interface iface, FDTMC fragment, Map<State, State> statesMapping) {
+        Map<State, State> fragmentStatesMapping = this.inlineStates(fragment);
+        this.inlineTransitions(fragment, fragmentStatesMapping);
 
-    protected Set<Transition> getInterfaceTransitions() {
+        this.createTransition(statesMapping.get(iface.getInitial()),
+                              fragmentStatesMapping.get(fragment.getInitialState()),
+                              "",
+                              "1");
+        this.createTransition(fragmentStatesMapping.get(fragment.getSuccessState()),
+                              statesMapping.get(iface.getSuccess()),
+                              "",
+                              "1");
+        if (fragment.getErrorState() != null) {
+            this.createTransition(fragmentStatesMapping.get(fragment.getErrorState()),
+                                  statesMapping.get(iface.getError()),
+                                  "",
+                                  "1");
+        }
+    }
+
+    private Set<Transition> getInterfaceTransitions() {
         Set<Transition> transitions = new HashSet<Transition>();
         interfaces.values().stream().flatMap(List<Interface>::stream)
                 .forEach(iface -> {
