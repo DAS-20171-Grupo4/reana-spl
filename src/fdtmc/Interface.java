@@ -53,22 +53,22 @@ public class Interface {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof Interface) {
             Interface other = (Interface) obj;
-            return initial.equals(other.initial)
-                    && success.equals(other.success)
-                    && error.equals(other.error)
-                    && successTransition.equals(other.successTransition)
-                    && errorTransition.equals(other.errorTransition);
+            return getInitial().equals(other.getInitial())
+                    && getSuccess().equals(other.getSuccess())
+                    && getError().equals(other.getError())
+                    && getSuccessTransition().equals(other.getSuccessTransition())
+                    && getErrorTransition().equals(other.getErrorTransition());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return initial.hashCode()
-                + success.hashCode()
-                + error.hashCode()
-                + successTransition.hashCode()
-                + errorTransition.hashCode();
+        return getInitial().hashCode()
+                + getSuccess().hashCode()
+                + getError().hashCode()
+                + getSuccessTransition().hashCode()
+                + getErrorTransition().hashCode();
     }
 
 }
