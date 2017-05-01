@@ -38,8 +38,8 @@ public class Transition {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof Transition) {
             Transition other = (Transition) obj;
-            return source.equals(other.source)
-                    && target.equals(other.target)
+            return getSource().equals(other.source)
+                    && getTarget().equals(other.target)
                     && areEqualProbabilities(probability, other.probability);
         }
         return false;
@@ -47,7 +47,7 @@ public class Transition {
 
     @Override
     public int hashCode() {
-        return this.source.hashCode() + this.target.hashCode();
+        return getSource().hashCode() + getTarget().hashCode();
     }
 
     /**
