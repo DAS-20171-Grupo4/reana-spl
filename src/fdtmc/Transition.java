@@ -36,13 +36,22 @@ public class Transition {
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof Transition) {
+        if (isNotNullAndIsTransition(obj)) {
             Transition other = (Transition) obj;
-            return getSource().equals(other.source)
-                    && getTarget().equals(other.target)
-                    && areEqualProbabilities(probability, other.probability);
+            return compareTransitions(other);
         }
         return false;
+    }
+
+    private boolean isNotNullAndIsTransition(Object obj){
+        return obj != null && obj instanceof Transition;
+    }
+
+    private boolean compareTransitions(Transition other){
+        boolean equalSources = getSource().equals(other.getSource());
+        boolean equalTargets = getTarget().equals(other.getTarget());
+        boolean equalProbability =	areEqualProbabilities(getProbability(), other.getProbability());
+        return equalSources && equalTargets && equalProbability;
     }
 
     @Override
