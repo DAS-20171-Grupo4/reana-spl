@@ -343,18 +343,17 @@ public class FDTMC {
     public FDTMC decoratedWithPresence(String presenceVariable) {
         FDTMC decorated = copy();
 
-        State oldInitial = decorated.getInitialState();
-        State newInitial = decorated.createInitialState();
         // Enter the original chain in case of presence
-        decorated.createTransition(newInitial,
-                                   oldInitial,
-                                   "",
-                                   presenceVariable);
+        decorated.createTransition(decorated.createInitialState(), 
+        		                   decorated.getInitialState(), 
+        		                   "", 
+        		                   presenceVariable);
         // Short-circuit in case of absence
-        decorated.createTransition(newInitial,
-                                   decorated.getSuccessState(),
-                                   "",
-                                   "1-"+presenceVariable);
+        decorated.createTransition(decorated.createInitialState(), 
+        		                   decorated.getSuccessState(), 
+        		                   "", 
+        		                   "1-"+presenceVariable);
+        
         return decorated;
     }
 
@@ -419,13 +418,15 @@ public class FDTMC {
      * @return
      */
     private Map<State, State> inlineStates(FDTMC fdtmc) {
-        Map<State, State> statesOldToNew = new HashMap<State, State>();
+    	Map<State, State> statesOldToNew = new HashMap<State, State>();
         for (State state: fdtmc.getStates()) {
             State newState = this.createState();
             statesOldToNew.put(state, newState);
         }
         return statesOldToNew;
+        
     }
+    
 
     /**
      * Inlines all transitions from {@code fdtmc} that are not part of an interface.
@@ -510,5 +511,7 @@ public class FDTMC {
                 });
         return transitions;
     }
+    
+
 
 }
