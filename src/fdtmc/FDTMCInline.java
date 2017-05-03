@@ -38,7 +38,7 @@ public class FDTMCInline {
         Set<Transition> interfaceTransitions = fdtmc.getInterfaceTransitions();
         for (Map.Entry<State, List<Transition>> entry : fdtmc.getTransitions().entrySet()) {
             List<Transition> transitions = entry.getValue();
-            if (transitions != null) {
+            if (transitionsIsNotNull(transitions)) {
                 for (Transition transition : transitions) {
                     if (!interfaceTransitions.contains(transition)) {
                         inlineTransition(transition, statesOldToNew, origin);
@@ -47,6 +47,10 @@ public class FDTMCInline {
             }
         }
     }
+	
+	protected boolean transitionsIsNotNull( List<Transition> transitions){
+		return (transitions != null);
+	}
 	
 	protected Transition inlineTransition(Transition transition, Map<State, State> statesOldToNew, FDTMC origin) {
         State newSource = statesOldToNew.get(transition.getSource());

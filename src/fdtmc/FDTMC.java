@@ -189,6 +189,8 @@ public class FDTMC {
 		return false; 
 	}
 	
+	
+	
 	private boolean transitionIsNull(List<Transition> listOfTransitions) {
 		if (listOfTransitions == null) {
 	        return true;
@@ -303,7 +305,7 @@ public class FDTMC {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-	    if (obj != null && obj instanceof FDTMC) {
+	    if (isNotNullAndIsIstanceObject(obj)) {
 	        FDTMC other = (FDTMC) obj;
 	        LinkedList<List<Interface>> thisInterfaces = new LinkedList<List<Interface>>(getInterfaces().values());
             LinkedList<List<Interface>> otherInterfaces = new LinkedList<List<Interface>>(other.getInterfaces().values());
@@ -319,6 +321,10 @@ public class FDTMC {
 	               
 	    }
 	    return false;
+	}
+	
+	public boolean isNotNullAndIsIstanceObject(Object obj){
+		return (obj != null && obj instanceof FDTMC);
 	}
 
 	@Override
