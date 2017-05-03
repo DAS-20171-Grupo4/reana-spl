@@ -50,16 +50,25 @@ public class Interface {
      * Interfaces are compared for equality disregarding the abstracted id.
      */
     @Override
+ 
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof Interface) {
+        if (isNotNullAndIsInterface(obj)) {
             Interface other = (Interface) obj;
-            return getInitial().equals(other.getInitial())
-                    && getSuccess().equals(other.getSuccess())
-                    && getError().equals(other.getError())
-                    && getSuccessTransition().equals(other.getSuccessTransition())
-                    && getErrorTransition().equals(other.getErrorTransition());
+            return this.statesAndTransitionsAreEqual(other);
         }
         return false;
+    }
+
+    private static boolean isNotNullAndIsInterface(Object obj){
+    	return obj != null && obj instanceof Interface;
+    }
+
+    private boolean statesAndTransitionsAreEqual(Interface other){
+        return getInitial().equals(other.getInitial())
+                && getSuccess().equals(other.getSuccess())
+                && getError().equals(other.getError())
+                && getSuccessTransition().equals(other.getSuccessTransition())
+                && getErrorTransition().equals(other.getErrorTransition());
     }
 
     @Override

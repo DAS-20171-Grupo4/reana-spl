@@ -36,11 +36,15 @@ public class State {
      */
     @Override
     public boolean equals(Object obj) {
-        if (obj != null && obj instanceof State) {
+        if (isNotNullAndIsState(obj)) {
             State other = (State) obj;
-            return getIndex() == other.index;
+            return getIndex() == other.getIndex();
         }
         return false;
+    }
+
+    private boolean isNotNullAndIsState(Object obj){
+        return obj != null && obj instanceof State;
     }
 
     @Override
