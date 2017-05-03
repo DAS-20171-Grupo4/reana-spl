@@ -38,14 +38,14 @@ public class State {
     public boolean equals(Object obj) {
         if (obj != null && obj instanceof State) {
             State other = (State) obj;
-            return this.index == other.index;
+            return getIndex() == other.index;
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return index + 1;
+        return getIndex() + 1;
     }
 
 }

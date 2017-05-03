@@ -78,6 +78,14 @@ public class RDGNode {
         return id;
     }
 
+    public static int getLastNodeIndex(){
+    	return lastNodeIndex;
+    }
+
+    public static List<RDGNode> getNodesInCreationOrder(){
+    	return nodesInCreationOrder;
+    }
+
     /**
      * Height of the RDGNode. This metric is defined in the same way as
      * the height of a tree node, i.e., the maximum number of nodes in a path
@@ -92,7 +100,7 @@ public class RDGNode {
     }
 
     public static String getNextId() {
-        return "n" + lastNodeIndex++;
+        return "n" + getLastNodeIndex()+1;
     }
 
     /**
@@ -114,7 +122,7 @@ public class RDGNode {
 
     @Override
     public int hashCode() {
-        return id.hashCode() + presenceCondition.hashCode() + fdtmc.hashCode() + dependencies.hashCode();
+        return getId().hashCode() + getPresenceCondition().hashCode() + getFDTMC().hashCode() + getDependencies().hashCode();
     }
 
     @Override
@@ -230,7 +238,7 @@ public class RDGNode {
      * @return a similar RDG node or null in case there is none.
      */
     public static RDGNode getSimilarNode(RDGNode target) {
-        for (RDGNode candidate: nodesInCreationOrder) {
+        for (RDGNode candidate: getNodesInCreationOrder()) {
             if (candidate.isNotTargetAndEquals(target)) {
                 return candidate;
             }
